@@ -16,5 +16,7 @@ WORKDIR /web
 EXPOSE 8000
 
 COPY server.py /web/
+COPY index.html /web/
+
 ENTRYPOINT /web/server.py
 

@@ -5,7 +5,7 @@ import shutil
 import subprocess
 import tempfile
 
-from http.server import HTTPServer, BaseHTTPRequestHandler
+from http.server import HTTPServer, SimpleHTTPRequestHandler
 
 stltostp="/web/stltostp"
 
@@ -22,7 +22,13 @@ def convert(source, target):
     except Exception as e:
         return (500, str(e))
 
-class FileConvertHandler(BaseHTTPRequestHandler):
+class FileConvertHandler(SimpleHTTPRequestHandler):
+    def do_GET(self):
+        if self.path != "/":
+            self.send_error(404, "Not Found")
+            return
+        SimpleHTTPRequestHandler.do_GET(self)
+
     def do_POST(self):
         content_len = int(self.headers.get("Content-Length", 0))
         if content_len == 0:
@@ -38,9 +44,12 @@ class FileConvertHandler(BaseHTTPRequestHandler):
             self.send_error(400, "No file received")
             return
 
+        if not form['file'].filename.endswith(".stl"):
+            self.send_error(400, "STL file expected")
+            return
+
         with tempfile.NamedTemporaryFile() as stl:
             shutil.copyfileobj(form['file'].file, stl.file)
-            self.rfile.close()
 
             with tempfile.NamedTemporaryFile() as step:
                 (status, error) = convert(stl.name, step.name)
@@ -48,8 +57,12 @@ class FileConvertHandler(BaseHTTPRequestHandler):
                 if error:
                     self.send_error(status, error)
                 else:
+                    filename =  ".".join(form['file'].filename.split(".")[:-1]) + ".step"
+                    self.log_message(f"successfully converted {filename}")
                     self.send_response(status)
-                    self.send_header("Content-type", "application/binary")
+                    self.send_header("Content-type", "application/octet-stream")
+                    self.send_header("Content-Disposition", f"attachment; filename=\"{filename}\"")
+
                     self.end_headers()
                     shutil.copyfileobj(step.file, self.wfile)
 
