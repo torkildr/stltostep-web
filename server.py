@@ -18,7 +18,7 @@ def convert(source, target):
         if result.returncode == 0:
             return (200, None)
         else:
-            return (400, result.stderr)
+            return (400, result.stderr or "Could not convert file")
     except Exception as e:
         return (500, str(e))
 
@@ -74,3 +74,4 @@ def run(server_class=HTTPServer, handler_class=FileConvertHandler):
 
 if __name__ == "__main__":
     run()
+
