@@ -6,7 +6,7 @@ This will take a STL file and return a STEP file.
 
 Example run:
 ```
-docker run -p 8000:8000 torkildr/stltostep-web
+docker run -p 8000:8000 ghcr.io/torkildr/stltostep-web:latest
 ```
 
 This can be consumed in a browser, or programmatically, eg.:
