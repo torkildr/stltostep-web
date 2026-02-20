@@ -1,4 +1,4 @@
-FROM buildpack-deps:bullseye AS builder
+FROM buildpack-deps:stable AS builder
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
@@ -9,11 +9,13 @@ RUN git clone https://github.com/slugdev/stltostp.git \
  && cmake . \
  && make
 
-FROM python:bullseye
+FROM python:3-slim
 
 COPY --from=builder /stltostp/stltostp /web/stltostp
 WORKDIR /web
 EXPOSE 8000
+
+RUN pip install legacy-cgi
 
 COPY server.py /web/
 COPY index.html /web/
