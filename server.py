@@ -57,7 +57,12 @@ class FileConvertHandler(SimpleHTTPRequestHandler):
                 if error:
                     self.send_error(status, error)
                 else:
-                    filename =  ".".join(form['file'].filename.split(".")[:-1]) + ".step"
+                    raw_name = form['file'].filename.rsplit(".", 1)[0] if "." in form['file'].filename else form['file'].filename
+                    try:
+                        raw_name.encode("latin-1")
+                    except UnicodeEncodeError:
+                        raw_name = "".join(c for c in raw_name if ord(c) < 128)
+                    filename = raw_name + ".step"
                     self.log_message(f"successfully converted {filename}")
                     self.send_response(status)
                     self.send_header("Content-type", "application/octet-stream")
